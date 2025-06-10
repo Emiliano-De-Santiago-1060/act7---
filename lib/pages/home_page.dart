@@ -13,12 +13,13 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Mi CRUD"),
+        title: Text("Plataformas De Venta", style: TextStyle(color: Colors.white)),
         centerTitle: true,
-        backgroundColor: Colors.blueGrey,
+        backgroundColor: Colors.red[700], // Rojo fuerte
+        elevation: 5,
       ),
       body: FutureBuilder(
-        future: getPeople(),
+        future: getFresas(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return ListView.builder(
@@ -26,66 +27,129 @@ class _HomeState extends State<Home> {
               itemBuilder: (context, index) {
                 return Dismissible(
                   onDismissed: (direction) async {
-                    await deletePeople(snapshot.data?[index]['uid']);
+                    await deleteFresa(snapshot.data?[index]['uid']);
                     snapshot.data?.removeAt(index);
+                    setState(() {});
                   },
-                  confirmDismiss: (direcion) async {
+                  confirmDismiss: (direction) async {
                     bool result = false;
                     result = await showDialog(
                       context: context,
                       builder: (context) {
                         return AlertDialog(
                           title: Text(
-                            "Estas seguro que quieres eliminar a ${snapshot.data?[index]['name']}?",
+                            "Eliminar ${snapshot.data?[index]['nombre']}",
                           ),
+                          content: Text("¿Estás seguro?"),
                           actions: [
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(context, false);
                               },
-                              child: const Text(
-                                "Cancelar",
-                                style: TextStyle(color: Colors.red),
-                              ),
+                              child: Text("No", style: TextStyle(color: Colors.red)),
                             ),
                             TextButton(
                               onPressed: () {
                                 Navigator.pop(context, true);
                               },
-                              child: const Text("Si estoy seguro"),
+                              child: Text("Sí", style: TextStyle(color: Colors.green)),
                             ),
                           ],
                         );
                       },
                     );
-
                     return result;
                   },
                   background: Container(
-                    color: Colors.red,
-                    child: Icon(Icons.delete),
+                    color: Colors.red[400], // Rojo medio
+                    child: const Icon(Icons.delete, color: Colors.white),
                   ),
                   direction: DismissDirection.endToStart,
                   key: Key(snapshot.data?[index]['uid']),
-                  child: ListTile(
-                    title: Text(snapshot.data?[index]['name']),
-                    onTap: (() async {
-                      await Navigator.pushNamed(
-                        context,
-                        '/edit',
-                        arguments: {
-                          "name": snapshot.data?[index]['name'],
-                          "uid": snapshot.data?[index]['uid'],
-                        },
-                      );
-                      setState(() {});
-                    }),
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    color: Colors.red[50], // Fondo suave
+                    elevation: 5,
+                    child: ListTile(
+                      contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                      title: Text(
+                        snapshot.data?[index]['id'] ?? '',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.red[800],
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 5),
+                          Row(
+                            children: [
+                              Icon(Icons.key, size: 18, color: Colors.red[600]),
+                              const SizedBox(width: 8),
+                              Text('ID: ${snapshot.data?[index]['id'] ?? ''}', style: TextStyle(color: Colors.red[600])),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.sell, size: 18, color: Colors.red[600]),
+                              const SizedBox(width: 8),
+                              Text('Nombre: ${snapshot.data?[index]['nombre'] ?? ''}', style: TextStyle(color: Colors.red[600])),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.category, size: 18, color: Colors.red[600]),
+                              const SizedBox(width: 8),
+                              Text('Tipo: ${snapshot.data?[index]['tipo'] ?? ''}', style: TextStyle(color: Colors.red[600])),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.person, size: 18, color: Colors.red[600]),
+                              const SizedBox(width: 8),
+                              Text('Encargado: ${snapshot.data?[index]['encargado'] ?? ''}', style: TextStyle(color: Colors.red[600])),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.money, size: 18, color: Colors.red[600]),
+                              const SizedBox(width: 8),
+                              Text('Ganancias: ${snapshot.data?[index]['ganancias'] ?? ''}', style: TextStyle(color: Colors.red[600])),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.accessibility, size: 18, color: Colors.red[600]),
+                              const SizedBox(width: 8),
+                              Text('Servicio: ${snapshot.data?[index]['servicio'] ?? ''}', style: TextStyle(color: Colors.red[600])),
+                            ],
+                          ),
+                        ],
+                      ),
+                      onTap: () async {
+                        await Navigator.pushNamed(context, "/edit", arguments: {
+                          'id': snapshot.data?[index]['id'],
+                          'nombre': snapshot.data?[index]['nombre'],
+                          'tipo': snapshot.data?[index]['tipo'],
+                          'encargado': snapshot.data?[index]['encargado'],
+                          'servicio': snapshot.data?[index]['servicio'],
+                          'ganancias': snapshot.data?[index]['ganancias'],
+                          'uid': snapshot.data?[index]['uid'],
+                        });
+                        setState(() {});
+                      },
+                    ),
                   ),
                 );
               },
             );
           } else {
-            return Center(child: Text("Cargando..."));
+            return Center(child: CircularProgressIndicator());
           }
         },
       ),
@@ -94,6 +158,8 @@ class _HomeState extends State<Home> {
           await Navigator.pushNamed(context, '/add');
           setState(() {});
         },
+        backgroundColor: Colors.red[400], // Rojo más suave para el FAB
+        foregroundColor: Colors.white,
         child: Icon(Icons.add),
       ),
     );
